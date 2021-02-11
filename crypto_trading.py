@@ -9,11 +9,6 @@ import json
 import configparser
 import telegram
 
-# Telegram bot
-botChatID = 'xxx' 
-botToken = 'yyy'
-bot = telegram.Bot(token=botToken)
-
 # Config consts
 CFG_FL_NAME = 'user.cfg'
 USER_CFG_SECTION = 'binance_user_config'
@@ -29,7 +24,6 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 logger.info('Started')
-bot.sendMessage(chat_id=botChatID, text='Started')
 
 # Add supported coin symbols here
 supported_coin_list = [u'XLM', u'TRX', u'LTC', u'LINK', u'DOT', u'GRT', u'ICX', u'EOS', u'IOTA', u'ONT',u'QTUM', u'ETC', u'ADA', u'XMR', u'DASH', u'NEO', u'ATOM', u'DOGE', u'VET', u'BAT', u'OMG', u'BTT']
@@ -40,6 +34,13 @@ if not os.path.exists(CFG_FL_NAME):
     print('No configuration file (user.cfg) found! See README.')
     exit()
 config.read(CFG_FL_NAME)
+
+# Telegram bot
+botChatID = config.get(USER_CFG_SECTION, 'botChatID')
+botToken = config.get(USER_CFG_SECTION, 'botToken')
+bot = telegram.Bot(token=botToken)
+bot.sendMessage(chat_id=botChatID, text='Started')
+
 
 class CryptoState():
     _coin_backup_file = ".current_coin"
