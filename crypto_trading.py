@@ -7,6 +7,12 @@ import time
 import os
 import json
 import configparser
+import telegram
+
+# Telegram bot
+botChatID = 'xxx' 
+botToken = 'yyy'
+bot = telegram.Bot(token=botToken)
 
 # Config consts
 CFG_FL_NAME = 'user.cfg'
@@ -23,10 +29,10 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 logger.info('Started')
+bot.sendMessage(chat_id=botChatID, text='Started')
 
 # Add supported coin symbols here
-supported_coin_list = [u'XLM', u'TRX', u'ICX', u'EOS', u'IOTA', u'ONT',
-                                             u'QTUM', u'ETC', u'ADA', u'XMR', u'DASH', u'NEO', u'ATOM', u'DOGE', u'VET', u'BAT', u'OMG', u'BTT']
+supported_coin_list = [u'XLM', u'TRX', u'LTC', u'LINK', u'DOT', u'GRT', u'ICX', u'EOS', u'IOTA', u'ONT',u'QTUM', u'ETC', u'ADA', u'XMR', u'DASH', u'NEO', u'ATOM', u'DOGE', u'VET', u'BAT', u'OMG', u'BTT']
 
 # Init config
 config = configparser.ConfigParser()
@@ -121,6 +127,8 @@ def buy_alt(client, alt_symbol, crypto_symbol):
     order_quantity = ((math.floor(get_currency_balance(client, crypto_symbol) *
                                   10**ticks[alt_symbol] / get_market_ticker_price(client, alt_symbol+crypto_symbol))/float(10**ticks[alt_symbol])))
     logger.info('BUY QTY %s', order_quantity)
+    messageBot = 'BUY QTY  %s' % order_quantity
+    bot.sendMessage(chat_id=botChatID, text=messageBot)
 
     # Try to buy until successful
     order = None
@@ -152,6 +160,8 @@ def buy_alt(client, alt_symbol, crypto_symbol):
         time.sleep(1)
 
     logger.info('Bought %s', alt_symbol)
+    messageBot = 'Bought %s' % alt_symbol
+    bot.sendMessage(chat_id=botChatID, text=messageBot)
 
     return order
 
@@ -170,9 +180,12 @@ def sell_alt(client, alt_symbol, crypto_symbol):
     order_quantity = (math.floor(get_currency_balance(client, alt_symbol) *
                                  10**ticks[alt_symbol])/float(10**ticks[alt_symbol]))
     logger.info('Selling %s of %s' % (order_quantity, alt_symbol))
+    messageBot = 'Selling %s of %s' % (order_quantity, alt_symbol)
+    bot.sendMessage(chat_id=botChatID, text=messageBot)
 
     bal = get_currency_balance(client, alt_symbol)
     logger.info('Balance is %s' % bal)
+
     order = None
     while order is None:
         order = client.order_market_sell(
@@ -209,6 +222,8 @@ def sell_alt(client, alt_symbol, crypto_symbol):
         newbal = get_currency_balance(client, alt_symbol)
 
     logger.info('Sold {0}'.format(alt_symbol))
+    messageBot = 'Sold {0}'.format(alt_symbol)
+    bot.sendMessage(chat_id=botChatID, text=messageBot)
 
     return order
 
@@ -252,6 +267,9 @@ def initialize_trade_thresholds(client):
             client, coin_dict + 'USDT'))
         for coin in supported_coin_list:
             logger.info("Initializing %s vs %s" % (coin_dict, coin))
+            messageBot = "Initializing %s vs %s" % (coin_dict, coin)
+            bot.sendMessage(chat_id=botChatID, text=messageBot)
+
             if coin != coin_dict:
                 g_state.coin_table[coin_dict][coin] = coin_dict_price / \
                     float(get_market_ticker_price(client, coin + 'USDT'))
@@ -260,7 +278,7 @@ def initialize_trade_thresholds(client):
         json.dump(g_state.coin_table, backup_file)
 
 
-def scout(client, transaction_fee=0.001, multiplier=5):
+def scout(client, transaction_fee=0.001, multiplier=6):
     '''
     Scout for potential jumps from the current coin to another coin
     '''
