@@ -41,7 +41,6 @@ botToken = config.get(USER_CFG_SECTION, 'botToken')
 bot = telegram.Bot(token=botToken)
 bot.sendMessage(chat_id=botChatID, text='Started')
 
-
 class CryptoState():
     _coin_backup_file = ".current_coin"
     _table_backup_file = ".current_coin_table"
@@ -156,9 +155,13 @@ def buy_alt(client, alt_symbol, crypto_symbol):
             time.sleep(10)
 
     while stat[u'status'] != 'FILLED':
-        stat = client.get_order(
-            symbol=alt_symbol+crypto_symbol, orderId=order[u'orderId'])
-        time.sleep(1)
+        try:
+            stat = client.get_order(
+                symbol=alt_symbol+crypto_symbol, orderId=order[u'orderId'])
+            time.sleep(1)
+        except BinanceAPIException as e:
+            logger.info(e)
+            time.sleep(2)
 
     logger.info('Bought %s', alt_symbol)
     messageBot = 'Bought %s' % alt_symbol
